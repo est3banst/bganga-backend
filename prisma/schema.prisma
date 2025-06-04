@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int           @id @default(autoincrement())
+  email       String        @unique
+  password    String
+  fullName    String
+  dob         DateTime
+  createdAt   DateTime      @default(now())
+  country     String
+
+  products    Product[]
+  purchases   Purchase[]
+  favorites   Favorite[]
+  reviews     Review[]
+  addresses   ShippingAddress[]
+  messagesSent     Message[]    @relation("MessagesSent")
+  messagesReceived Message[]    @relation("MessagesReceived")
+}
+
+model Product {
+  id          Int           @id @default(autoincrement())
+  title       String
+  desc        String
+  price       Float
+  createdAt   DateTime      @default(now())
+
+  userId      Int
+  user        User          @relation(fields: [userId], references: [id])
+
+  categoryId  Int
+  category    Category      @relation(fields: [categoryId], references: [id])
+
+  images      Image[]
+  favorites   Favorite[]
+  reviews     Review[]
+  orderItems  OrderItem[]
+}
+
+model Image {
+  id          Int           @id @default(autoincrement())
+  url         String
+  productId   Int
+  product     Product       @relation(fields: [productId], references: [id])
+}
+
+model Category {
+  id          Int           @id @default(autoincrement())
+  name        String        @unique
+  products    Product[]
+}
+
+model Favorite {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  productId   Int
+  createdAt   DateTime      @default(now())
+
+  user        User          @relation(fields: [userId], references: [id])
+  product     Product       @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
+}
+
+model Review {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  productId   Int
+  rating      Int           
+  comment     String
+  createdAt   DateTime      @default(now())
+
+  user        User          @relation(fields: [userId], references: [id])
+  product     Product       @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId]) 
+}
+
+model Purchase {
+  id              Int               @id @default(autoincrement())
+  userId          Int
+  shippingAddressId Int
+  totalAmount     Float
+  status          String            // pending, completed, shipped, etc.
+  paymentStatus   String            // pending, paid, refunded, etc.
+  paymentMethod   String            // PayPal, CreditCard, MercadoPago
+  createdAt       DateTime          @default(now())
+
+  user            User              @relation(fields: [userId], references: [id])
+  shippingAddress ShippingAddress   @relation(fields: [shippingAddressId], references: [id])
+  orderItems      OrderItem[]
+  payments        Payment[]
+}
+
+model OrderItem {
+  id          Int           @id @default(autoincrement())
+  purchaseId  Int
+  productId   Int
+  quantity    Int
+  price       Float
+
+  purchase    Purchase      @relation(fields: [purchaseId], references: [id])
+  product     Product       @relation(fields: [productId], references: [id])
+}
+
+model ShippingAddress {
+  id          Int           @id @default(autoincrement())
+  userId      Int
+  fullName    String
+  street      String
+  city        String
+  postalCode  String
+  country     String
+  phone       String
+
+  user        User          @relation(fields: [userId], references: [id])
+  purchases   Purchase[]
+}
+
+model Payment {
+  id          Int           @id @default(autoincrement())
+  purchaseId  Int
+  amount      Float
+  method      String        // PayPal, MercadoPago, CreditCard, etc.
+  status      String        // pending, completed, refunded
+  transactionId String      
+  createdAt   DateTime      @default(now())
+
+  purchase    Purchase      @relation(fields: [purchaseId], references: [id])
+}
+
+model Message {
+  id          Int           @id @default(autoincrement())
+  senderId    Int
+  receiverId  Int
+  content     String
+  createdAt   DateTime      @default(now())
+
+  sender      User          @relation("MessagesSent", fields: [senderId], references: [id])
+  receiver    User          @relation("MessagesReceived", fields: [receiverId], references: [id])
+}
