@@ -108,26 +108,19 @@ export class UsersService {
   }
 
   async checkUserAddress(userId: number) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
+    const addresses = await this.prisma.shippingAddress.findMany({
+      where: { userId },
       select: {
-        addresses: {
-            select: {
-                id: true,
-                fullName: true,
-                street: true,
-                city: true,
-                country: true,
-                postalCode: true,
-                phone: true,
-            },
-        }
-        },
-    });
-    if (!user) {
-      throw new NotFoundException('Usuario no encontrado');
-    }
-    return user.addresses;
+        id: true,
+        fullName: true,
+        street: true,
+        city: true,
+        country: true,
+        postalCode: true,
+        phone: true,
+    },
+  });
+    return addresses;
   }
 
   async findOne(id: number) {

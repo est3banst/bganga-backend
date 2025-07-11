@@ -1,4 +1,4 @@
-import { Body, Controller, UseGuards, Req, Post, Delete } from '@nestjs/common';
+import { Body, Controller, UseGuards, Req, Post, Put, Delete } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -32,7 +32,7 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post('update-address/:id')
+  @Put('edit-address/:id')
   async updateAddress(@Req() req, @Body() dto: CreateAddressDto) {
     const userId = Number(req.user.id);
     const addressId = Number(req.params.id);
